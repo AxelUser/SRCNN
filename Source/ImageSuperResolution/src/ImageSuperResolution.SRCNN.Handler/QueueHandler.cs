@@ -11,27 +11,35 @@ namespace ImageSuperResolution.SRCNN.Handler
 {
     public class QueueHandler
     {
+        private readonly SRCNNModelLayer[] _model;
+
         public QueueHandler()
         {
-           
+            _model = LoadModel();
         }
 
-        public void Start(bool isTestingPhase)
+        public void Start(bool isTestingPhase = false)
         {
-            HardcodeTesting();
+            if (isTestingPhase)
+            {
+                HardcodeTesting();
+            }
         }
 
-
+        private SRCNNModelLayer[] LoadModel()
+        {
+            var jsonModel = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "model.json"));
+            return SRCNNModelLayer.ReadModel(jsonModel);
+        }
 
         private void HardcodeTesting()
         {
             var originalImage = new Bitmap(Image.FromFile(Path.Combine(Directory.GetCurrentDirectory(), "test.bmp")));
-            var jsonModel = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "model.json"));
             var rgba = ImageUtils.GetRgbaFromBitmap(originalImage);
             SRCNNHandler srcnn = new SRCNNHandler()
             {
                 Scale = 2,
-                ScaleModel = SRCNNModelLayer.ReadModel(jsonModel)
+                ScaleModel = _model
             };
             Action<ProgressMessage> progressCallback = Console.WriteLine;
             Action<ResultMessage> doneCallback = (result) =>
