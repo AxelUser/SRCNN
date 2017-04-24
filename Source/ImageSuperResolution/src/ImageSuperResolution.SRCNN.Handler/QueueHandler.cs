@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using ImageSuperResolution.SRCNN.Handler.Messages;
 using ImageSuperResolution.SRCNN.Handler.Upscalling;
 
 namespace ImageSuperResolution.SRCNN.Handler
@@ -32,7 +33,7 @@ namespace ImageSuperResolution.SRCNN.Handler
                 Scale = 2,
                 ScaleModel = SRCNNModelLayer.ReadModel(jsonModel)
             };
-            Action<int, string> progressCallback = (progressIndex, message) => Console.WriteLine($"{progressIndex}: {message}");
+            Action<ProgressMessage> progressCallback = Console.WriteLine;
             Action<byte[], int, int> doneCallback = (image, width, height) =>
             {                
                 var newImage = ImageUtils.GetBitmapFromRgba(width, height, image);

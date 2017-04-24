@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ImageSuperResolution.SRCNN.Handler.Messages;
 
 namespace ImageSuperResolution.SRCNN.Handler
 {
@@ -109,7 +110,7 @@ namespace ImageSuperResolution.SRCNN.Handler
             return arrayW.ToArray();
         }
 
-        private ImagePlane[][] UpscaleBlocks(SRCNNModelLayer[] model, double[][] weights, Action<int, string> progressCallback, string phase, params  ImagePlane[][] blocks)
+        private ImagePlane[][] UpscaleBlocks(SRCNNModelLayer[] model, double[][] weights, Action<ProgressMessage> progressCallback, int blockGroup, int totalBlockGroups, params  ImagePlane[][] blocks)
         {
             List<ImagePlane[]> outputBlocks = new List<ImagePlane[]>();
             for (int b = 0; b < blocks.Length; b++)
@@ -127,14 +128,16 @@ namespace ImageSuperResolution.SRCNN.Handler
                 }
                 outputBlocks.Add(outputBlock);
                 int doneRatio = (int)Math.Round((double)(100 * (b + 1)) / blocks.Length, MidpointRounding.AwayFromZero);
-                //progress(phase, doneRatio, imageBlocks.Blocks.Count, b + 1);
-                progressCallback(doneRatio, phase);
+                progressCallback(new BlockUpscalling(blockGroup, totalBlockGroups)
+                {
+                    Percent = doneRatio
+                });
             }
             //imageBlocks.Blocks = null;
             return outputBlocks.ToArray();
         }
 
-        private async Task<ImageChannels> UpscaleRgbAsync(ImageChannels channels, SRCNNModelLayer[] model, int scale, Action<int, string> progressCallback, string phase)
+        private ImageChannels UpscaleRgbAsync(ImageChannels channels, SRCNNModelLayer[] model, int scale, Action<ProgressMessage> progressCallback, string phase)
         {
             ImagePlane[] inputPlanes = channels.ToArray().Select((image) =>
             {
@@ -155,7 +158,7 @@ namespace ImageSuperResolution.SRCNN.Handler
 
             var outputBlocks = imageBlocks.Blocks.AsParallel()
                 .SelectMany((block, index) => UpscaleBlocks(model, weights, progressCallback,
-                    $"upscalling_block_{index}",
+                    index + 1, imageBlocks.Blocks.Count,
                     block))
                 .ToList();
 
@@ -177,35 +180,37 @@ namespace ImageSuperResolution.SRCNN.Handler
 
             return outputChannels;
         }
-        public async Task UpscaleImage(byte[] image, int width, int height, Action<byte[], int, int> done, Action<int, string> progress)
+        public async Task UpscaleImage(byte[] image, int width, int height, Action<byte[], int, int> done, Action<ProgressMessage> progress)
         {
             // decompose
-            progress(-1, "decompose");
+            progress(new ProgressMessage(UpscallingStatuses.Decompose, "in process"));
             ImageChannels channels = ImageChannel.ChannelDecompose(image, width, height);
+            progress(new ProgressMessage(UpscallingStatuses.Decompose, "ready"));
 
             // calculate
             //Scaling all blocks
-            channels = await UpscaleRgbAsync(channels, ScaleModel, Scale, progress, "scale");
+            ImageChannels upscaledChannels = await Task.Run(() => UpscaleRgbAsync(channels, ScaleModel, Scale, progress, "scale"));
             //Scaled all blocks
 
             // resize alpha channel
-            ImageChannel imageA = Scale == 1 ? channels.Alpha : channels.Alpha.Resize(Scale);
+            ImageChannel imageA = Scale == 1 ? upscaledChannels.Alpha : upscaledChannels.Alpha.Resize(Scale);
 
-            if (imageA.Buffer.Length != channels.Red.Buffer.Length)
+            if (imageA.Buffer.Length != upscaledChannels.Red.Buffer.Length)
             {
                 throw new Exception("A channel image size must be same with R channel image size");
             }
 
-            channels.Alpha = imageA;
+            upscaledChannels.Alpha = imageA;
 
             // recompose
-            progress(-1, "recompose");
-            byte[] upscaledImage = ImageChannel.ChannelCompose(channels);
+            progress(new ProgressMessage(UpscallingStatuses.Compose, "in process"));
+            byte[] upscaledImage = ImageChannel.ChannelCompose(upscaledChannels);
+            progress(new ProgressMessage(UpscallingStatuses.Compose, "ready"));
 
-            done(upscaledImage, channels.Red.Width, channels.Red.Height);
+            done(upscaledImage, upscaledChannels.Red.Width, upscaledChannels.Red.Height);
         }
 
-        public async void UpscaleImageAsync(byte[] image, int width, int height, Action<byte[], int, int> done, Action<int, string> progress)
+        public async void UpscaleImageAsync(byte[] image, int width, int height, Action<byte[], int, int> done, Action<ProgressMessage> progress)
         {
             await UpscaleImage(image, width, height, done, progress);
         }
