@@ -34,11 +34,11 @@ namespace ImageSuperResolution.SRCNN.Handler
                 ScaleModel = SRCNNModelLayer.ReadModel(jsonModel)
             };
             Action<ProgressMessage> progressCallback = Console.WriteLine;
-            Action<byte[], int, int> doneCallback = (image, width, height) =>
+            Action<ResultMessage> doneCallback = (result) =>
             {                
-                var newImage = ImageUtils.GetBitmapFromRgba(width, height, image);
+                var newImage = ImageUtils.GetBitmapFromRgba(result.ImageWidth, result.ImageHeight, result.ImageRgba);
                 newImage.Save(Path.Combine(Directory.GetCurrentDirectory(), "test_upscaled.bmp"));
-                Console.WriteLine($"Image upscaled to {srcnn.Scale}: Width = {width}, Height = {height}");                
+                Console.WriteLine(result);
             };
             srcnn.UpscaleImageAsync(rgba, originalImage.Width, originalImage.Height, doneCallback, progressCallback);
             Console.ReadKey();

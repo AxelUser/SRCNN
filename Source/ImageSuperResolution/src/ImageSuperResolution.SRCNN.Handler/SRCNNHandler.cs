@@ -180,8 +180,9 @@ namespace ImageSuperResolution.SRCNN.Handler
 
             return outputChannels;
         }
-        public async Task UpscaleImage(byte[] image, int width, int height, Action<byte[], int, int> done, Action<ProgressMessage> progress)
+        public async Task UpscaleImage(byte[] image, int width, int height, Action<ResultMessage> done, Action<ProgressMessage> progress)
         {
+            TimeSpan timeSpanStart = TimeSpan.FromTicks(DateTime.Now.Ticks);
             // decompose
             progress(new ProgressMessage(UpscallingStatuses.Decompose, "in process"));
             ImageChannels channels = ImageChannel.ChannelDecompose(image, width, height);
@@ -207,10 +208,12 @@ namespace ImageSuperResolution.SRCNN.Handler
             byte[] upscaledImage = ImageChannel.ChannelCompose(upscaledChannels);
             progress(new ProgressMessage(UpscallingStatuses.Compose, "ready"));
 
-            done(upscaledImage, upscaledChannels.Red.Width, upscaledChannels.Red.Height);
+            TimeSpan elapsedTime = TimeSpan.FromTicks(DateTime.Now.Ticks) - timeSpanStart;
+
+            done(new ResultMessage(upscaledImage, upscaledChannels.Red.Width, upscaledChannels.Red.Height, elapsedTime));
         }
 
-        public async void UpscaleImageAsync(byte[] image, int width, int height, Action<byte[], int, int> done, Action<ProgressMessage> progress)
+        public async void UpscaleImageAsync(byte[] image, int width, int height, Action<ResultMessage> done, Action<ProgressMessage> progress)
         {
             await UpscaleImage(image, width, height, done, progress);
         }
