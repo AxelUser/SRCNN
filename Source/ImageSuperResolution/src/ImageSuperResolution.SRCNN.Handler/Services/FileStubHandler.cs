@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.Drawing.Imaging;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
@@ -76,8 +77,8 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
         private void ResultHandling(ResultMessage result)
         {
             var newImage = ImageUtils.GetBitmapFromRgba(result.ImageWidth, result.ImageHeight, result.ImageRgba);
-            string filename = $"{DateTime.Now:yy-MM-dd hh-mm-ss}.bmp";
-            newImage.Save(Path.Combine(_directoryOutput, filename));
+            string filename = $"{DateTime.Now:yy-MM-dd hh-mm-ss}.png";
+            newImage.Save(Path.Combine(_directoryOutput, filename), ImageFormat.Png);
             Console.WriteLine(result);
         }
 
