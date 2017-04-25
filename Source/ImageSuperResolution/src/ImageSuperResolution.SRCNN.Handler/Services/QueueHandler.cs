@@ -1,35 +1,23 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using ImageSuperResolution.SRCNN.Handler.Messages;
 using ImageSuperResolution.SRCNN.Handler.Upscalling;
 
-namespace ImageSuperResolution.SRCNN.Handler
+namespace ImageSuperResolution.SRCNN.Handler.Services
 {
-    public class QueueHandler
+    public class QueueHandler: UpscallingServiceBase
     {
-        private readonly SRCNNModelLayer[] _model;
+        public QueueHandler(): base() { }
 
-        public QueueHandler()
+        public override void Start()
         {
-            _model = LoadModel();
+            HardcodeTesting();
         }
 
-        public void Start(bool isTestingPhase = false)
+        public override void Stop()
         {
-            if (isTestingPhase)
-            {
-                HardcodeTesting();
-            }
-        }
-
-        private SRCNNModelLayer[] LoadModel()
-        {
-            var jsonModel = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "model.json"));
-            return SRCNNModelLayer.ReadModel(jsonModel);
+            throw new NotImplementedException();
         }
 
         private void HardcodeTesting()
@@ -39,7 +27,7 @@ namespace ImageSuperResolution.SRCNN.Handler
             SRCNNHandler srcnn = new SRCNNHandler()
             {
                 Scale = 2,
-                ScaleModel = _model
+                ScaleModel = Model
             };
             Action<ProgressMessage> progressCallback = Console.WriteLine;
             Action<ResultMessage> doneCallback = (result) =>

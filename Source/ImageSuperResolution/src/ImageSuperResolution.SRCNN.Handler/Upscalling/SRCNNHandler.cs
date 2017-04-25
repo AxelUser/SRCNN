@@ -1,11 +1,10 @@
-﻿using ImageSuperResolution.SRCNN.Handler.Upscalling;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ImageSuperResolution.SRCNN.Handler.Messages;
 
-namespace ImageSuperResolution.SRCNN.Handler
+namespace ImageSuperResolution.SRCNN.Handler.Upscalling
 {
     public class SRCNNHandler
     {

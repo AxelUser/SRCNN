@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using ImageSuperResolution.SRCNN.Handler;
+using ImageSuperResolution.SRCNN.Handler.Services;
 
 namespace ImageSuperResolution.SRCNN.ConsoleApp
 {
@@ -10,8 +11,10 @@ namespace ImageSuperResolution.SRCNN.ConsoleApp
     {
         public static void Main(string[] args)
         {
-            QueueHandler handler = new QueueHandler();
-            handler.Start(true);
+            FileStubHandler handler = new FileStubHandler();
+            handler.Start();
+            Console.ReadKey();
+            handler.Stop();
         }
     }
 }
