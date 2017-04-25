@@ -9,7 +9,13 @@
     "runtime.linux-x64.CoreCompat.System.Drawing": "1.0.0-beta009",
     "System.Linq.Parallel": "4.3.0"
   },
-
+  "buildOptions": {
+    "embed": {
+      "includeFiles": [
+        "model.json"
+      ]
+    }      
+  },
   "frameworks": {
     "netstandard1.6": {
       "imports": "dnxcore50"
