@@ -109,7 +109,7 @@ namespace ImageSuperResolution.SRCNN.Handler.Upscalling
             return arrayW.ToArray();
         }
 
-        private ImagePlane[][] UpscaleBlocks(SRCNNModelLayer[] model, double[][] weights, Action<ProgressMessage> progressCallback, int blockGroup, int totalBlockGroups, params  ImagePlane[][] blocks)
+        private ImagePlane[][] UpscaleBlocks(Guid taskId, SRCNNModelLayer[] model, double[][] weights, Action<ProgressMessage> progressCallback, int blockGroup, int totalBlockGroups, params  ImagePlane[][] blocks)
         {
             List<ImagePlane[]> outputBlocks = new List<ImagePlane[]>();
             for (int b = 0; b < blocks.Length; b++)
@@ -127,7 +127,7 @@ namespace ImageSuperResolution.SRCNN.Handler.Upscalling
                 }
                 outputBlocks.Add(outputBlock);
                 int doneRatio = (int)Math.Round((double)(100 * (b + 1)) / blocks.Length, MidpointRounding.AwayFromZero);
-                progressCallback(new BlockUpscalling(blockGroup, totalBlockGroups)
+                progressCallback(new BlockUpscalling(taskId, blockGroup, totalBlockGroups)
                 {
                     Percent = doneRatio
                 });
@@ -136,7 +136,7 @@ namespace ImageSuperResolution.SRCNN.Handler.Upscalling
             return outputBlocks.ToArray();
         }
 
-        private ImageChannels UpscaleRgbAsync(ImageChannels channels, SRCNNModelLayer[] model, int scale, Action<ProgressMessage> progressCallback, string phase)
+        private ImageChannels UpscaleRgbAsync(Guid taskId, ImageChannels channels, SRCNNModelLayer[] model, int scale, Action<ProgressMessage> progressCallback)
         {
             ImagePlane[] inputPlanes = channels.ToArray().Select((image) =>
             {
@@ -156,7 +156,7 @@ namespace ImageSuperResolution.SRCNN.Handler.Upscalling
             double[][] weights = GetWeights(model);
 
             var outputBlocks = imageBlocks.Blocks.AsParallel()
-                .SelectMany((block, index) => UpscaleBlocks(model, weights, progressCallback,
+                .SelectMany((block, index) => UpscaleBlocks(taskId, model, weights, progressCallback,
                     index + 1, imageBlocks.Blocks.Count,
                     block))
                 .ToList();
@@ -179,17 +179,17 @@ namespace ImageSuperResolution.SRCNN.Handler.Upscalling
 
             return outputChannels;
         }
-        public async Task UpscaleImage(byte[] image, int width, int height, Action<ResultMessage> done, Action<ProgressMessage> progress)
+        public async Task UpscaleImage(Guid taskId, byte[] image, int width, int height, Action<ResultMessage> done, Action<ProgressMessage> progress)
         {
             TimeSpan timeSpanStart = TimeSpan.FromTicks(DateTime.Now.Ticks);
             // decompose
-            progress(new ProgressMessage(UpscallingStatuses.Decompose, "in process"));
+            progress(new ProgressMessage(taskId, UpscallingStatuses.Decompose, "in process"));
             ImageChannels channels = ImageChannel.ChannelDecompose(image, width, height);
-            progress(new ProgressMessage(UpscallingStatuses.Decompose, "ready"));
+            progress(new ProgressMessage(taskId, UpscallingStatuses.Decompose, "ready"));
 
             // calculate
             //Scaling all blocks
-            ImageChannels upscaledChannels = await Task.Run(() => UpscaleRgbAsync(channels, ScaleModel, Scale, progress, "scale"));
+            ImageChannels upscaledChannels = await Task.Run(() => UpscaleRgbAsync(taskId, channels, ScaleModel, Scale, progress));
             //Scaled all blocks
 
             // resize alpha channel
@@ -203,18 +203,18 @@ namespace ImageSuperResolution.SRCNN.Handler.Upscalling
             upscaledChannels.Alpha = imageA;
 
             // recompose
-            progress(new ProgressMessage(UpscallingStatuses.Compose, "in process"));
+            progress(new ProgressMessage(taskId, UpscallingStatuses.Compose, "in process"));
             byte[] upscaledImage = ImageChannel.ChannelCompose(upscaledChannels);
-            progress(new ProgressMessage(UpscallingStatuses.Compose, "ready"));
+            progress(new ProgressMessage(taskId, UpscallingStatuses.Compose, "ready"));
 
             TimeSpan elapsedTime = TimeSpan.FromTicks(DateTime.Now.Ticks) - timeSpanStart;
 
-            done(new ResultMessage(upscaledImage, upscaledChannels.Red.Width, upscaledChannels.Red.Height, elapsedTime));
+            done(new ResultMessage(taskId, upscaledImage, upscaledChannels.Red.Width, upscaledChannels.Red.Height, elapsedTime));
         }
 
-        public async void UpscaleImageAsync(byte[] image, int width, int height, Action<ResultMessage> done, Action<ProgressMessage> progress)
+        public async void UpscaleImageAsync(Guid taskId, byte[] image, int width, int height, Action<ResultMessage> done, Action<ProgressMessage> progress)
         {
-            await UpscaleImage(image, width, height, done, progress);
+            await UpscaleImage(taskId, image, width, height, done, progress);
         }
     }
 }

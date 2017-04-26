@@ -11,7 +11,8 @@ namespace ImageSuperResolution.SRCNN.ConsoleApp
     {
         public static void Main(string[] args)
         {
-            FileStubHandler handler = new FileStubHandler();
+            //FileStubHandler handler = new FileStubHandler();
+            QueueHandler handler = new QueueHandler();
             handler.Start();
             Console.ReadKey();
             handler.Stop();

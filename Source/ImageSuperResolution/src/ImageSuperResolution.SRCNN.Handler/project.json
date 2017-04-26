@@ -2,6 +2,7 @@
   "version": "1.0.0-*",
 
   "dependencies": {
+    "BinaryFormatter": "1.0.2",
     "CoreCompat.System.Drawing": "1.0.0-beta006",
     "NETStandard.Library": "1.6.1",
     "Newtonsoft.Json": "10.0.2",

@@ -8,14 +8,17 @@ namespace ImageSuperResolution.SRCNN.Handler.Messages
 {
     public class ProgressMessage
     {
+        public Guid TaskId { get; set; }
+
         public int? Percent { get; set; } = null;
 
         public string Message { get; set; }
 
         public UpscallingStatuses Phase { get; set; }
 
-        public ProgressMessage(UpscallingStatuses phase, string message)
+        public ProgressMessage(Guid taskId, UpscallingStatuses phase, string message)
         {
+            TaskId = taskId;
             Phase = phase;
             Message = message;
         }
@@ -31,10 +34,7 @@ namespace ImageSuperResolution.SRCNN.Handler.Messages
             {
                 return $"{Phase.Description()} ({Percent}%): {Message}";
             }
-            else
-            {
-                return $"{Phase.Description()}: {Message}";
-            }            
+            return $"{Phase.Description()}: {Message}";
         }
     }
 }

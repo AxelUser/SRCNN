@@ -57,9 +57,11 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
 
                     int width = originalImage.Width;
                     int height = originalImage.Height;
-                    
+
+                    var taskId = Guid.NewGuid();
+
                     Task upscallingTask = Task.Run(
-                        () => srcnn.UpscaleImageAsync(rgba, width, height, ResultHandling,
+                        () => srcnn.UpscaleImageAsync(taskId, rgba, width, height, ResultHandling,
                             ProgressLogging), _cancellationTokenSource.Token);
                     _imagePrecessingTasks.RemoveAll(t => t.IsCompleted);
                     _imagePrecessingTasks.Add(upscallingTask);

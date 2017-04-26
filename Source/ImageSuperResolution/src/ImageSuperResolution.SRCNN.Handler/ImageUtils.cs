@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -51,6 +52,29 @@ namespace ImageSuperResolution.SRCNN.Handler
                 rgba.Add(color.A);
             }
             return rgba.ToArray();
+        }
+
+        public static Image GetImageFromByteArray(byte[] file)
+        {
+            using (MemoryStream mStream = new MemoryStream(file))
+            {
+                return Image.FromStream(mStream);
+            }
+        }
+
+        public static byte[] SaveImageToBytesPng(Bitmap image)
+        {
+            MemoryStream ms = new MemoryStream();
+            image.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            return ms.ToArray();
+        }
+
+        public static Image GetPngImage(byte[] imageBytes)
+        {
+            using (MemoryStream mStream = new MemoryStream(imageBytes))
+            {
+                return Image.FromStream(mStream);
+            }
         }
     }
 

@@ -12,7 +12,7 @@ namespace ImageSuperResolution.SRCNN.Handler.Messages
 
         public int BlockNumber { get; set; }
 
-        public BlockUpscalling(int blockNumber, int totalBlocks): base(UpscallingStatuses.UpscallingBlock, "scalling block")
+        public BlockUpscalling(Guid taskId, int blockNumber, int totalBlocks): base(taskId, UpscallingStatuses.UpscallingBlock, "scalling block")
         {
             BlockNumber = blockNumber;
             TotalBlocks = totalBlocks;
@@ -20,7 +20,7 @@ namespace ImageSuperResolution.SRCNN.Handler.Messages
 
         public override string ToString()
         {
-            return $"{base.ToString()} (block {BlockNumber} of {TotalBlocks})";
+            return $"{base.ToString()} (block group #{BlockNumber} of total {TotalBlocks})";
         }
     }
 }
