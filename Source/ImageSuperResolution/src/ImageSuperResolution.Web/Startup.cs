@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using ImageSuperResolution.Web.Servicies;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -29,6 +30,7 @@ namespace ImageSuperResolution.Web
         {
             // Add framework services.
             services.AddMvc();
+            services.AddTransient<IUpscallingService, UpscallingService>();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -44,17 +46,21 @@ namespace ImageSuperResolution.Web
             }
             else
             {
-                app.UseExceptionHandler("/Home/Error");
+                //TODO change this to static fault page 
+                app.UseDeveloperExceptionPage();
+                app.UseBrowserLink();
+                //app.UseExceptionHandler("/Home/Error");
             }
 
-            app.UseStaticFiles();
+            app.UseDefaultFiles();
+            app.UseStaticFiles();            
 
-            app.UseMvc(routes =>
-            {
-                routes.MapRoute(
-                    name: "default",
-                    template: "{controller=Home}/{action=Index}/{id?}");
-            });
+            //app.UseMvc(routes =>
+            //{
+            //    routes.MapRoute(
+            //        name: "default",
+            //        template: "{controller=Home}/{action=Index}/{id?}");
+            //});
         }
     }
 }

@@ -101,7 +101,7 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
 
             if (isValid && !_cancellationTokenSource.IsCancellationRequested)
             {
-                using (var originalImage = new Bitmap(ImageUtils.GetImageFromByteArray(imageData)))
+                using (var originalImage = new Bitmap(ImageUtils.DeserializeImage(imageData)))
                 {
                     byte[] rgba = ImageUtils.GetRgbaFromBitmap(originalImage);
                     SRCNNHandler srcnn = new SRCNNHandler()
@@ -132,7 +132,7 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
             MqMessage message = new MqMessage()
             {
                 Message = result.ToString(),
-                Content = ImageUtils.SaveImageToBytesPng(newImage)
+                Content = ImageUtils.SerializeImage(newImage)
             };
 
             PublishMessage(_outputChannel, result.TaskId, message);

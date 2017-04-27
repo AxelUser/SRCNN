@@ -51,7 +51,7 @@ namespace ImageSuperResolution.Common
             return rgba.ToArray();
         }
 
-        public static Image GetImageFromByteArray(byte[] file)
+        public static Image DeserializeImage(byte[] file)
         {
             using (MemoryStream mStream = new MemoryStream(file))
             {
@@ -59,7 +59,7 @@ namespace ImageSuperResolution.Common
             }
         }
 
-        public static byte[] SaveImageToBytesPng(Bitmap image)
+        public static byte[] SerializeImage(Bitmap image)
         {
             MemoryStream ms = new MemoryStream();
             image.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
@@ -71,6 +71,15 @@ namespace ImageSuperResolution.Common
             using (MemoryStream mStream = new MemoryStream(imageBytes))
             {
                 return Image.FromStream(mStream);
+            }
+        }
+
+        public static byte[] ReadToEnd(Stream stream)
+        {
+            using (var memoryStream = new MemoryStream())
+            {
+                stream.CopyTo(memoryStream);
+                return memoryStream.ToArray();
             }
         }
     }
