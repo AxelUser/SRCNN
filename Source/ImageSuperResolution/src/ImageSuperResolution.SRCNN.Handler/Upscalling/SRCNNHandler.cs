@@ -212,7 +212,7 @@ namespace ImageSuperResolution.SRCNN.Handler.Upscalling
             done(new ResultMessage(taskId, upscaledImage, upscaledChannels.Red.Width, upscaledChannels.Red.Height, elapsedTime));
         }
 
-        public async void UpscaleImageAsync(Guid taskId, byte[] image, int width, int height, Action<ResultMessage> done, Action<ProgressMessage> progress)
+        public async Task UpscaleImageAsync(Guid taskId, byte[] image, int width, int height, Action<ResultMessage> done, Action<ProgressMessage> progress)
         {
             await UpscaleImage(taskId, image, width, height, done, progress);
         }

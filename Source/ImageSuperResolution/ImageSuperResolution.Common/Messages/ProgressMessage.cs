@@ -13,6 +13,12 @@ namespace ImageSuperResolution.Common.Messages
 
         public UpscallingStatuses Phase { get; set; }
 
+        public ProgressMessage(Guid taskId, UpscallingStatuses phase)
+        {
+            TaskId = taskId;
+            Phase = phase;
+        }
+
         public ProgressMessage(Guid taskId, UpscallingStatuses phase, string message)
         {
             TaskId = taskId;
@@ -20,18 +26,18 @@ namespace ImageSuperResolution.Common.Messages
             Message = message;
         }
 
-        public ProgressMessage()
-        {
-
-        }
-
         public override string ToString()
         {
+            string message = $"[{TaskId}] {Phase.Description()}";
             if (Percent != null)
             {
-                return $"{Phase.Description()} ({Percent}%): {Message}";
+                message += $" ({Percent}%)";
             }
-            return $"{Phase.Description()}: {Message}";
+            if (!string.IsNullOrEmpty(Message))
+            {
+                message += $": {Message}";
+            }
+            return message;
         }
     }
 }

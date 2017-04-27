@@ -8,7 +8,7 @@ namespace ImageSuperResolution.Common.Messages
 
         public int BlockNumber { get; set; }
 
-        public BlockUpscalling(Guid taskId, int blockNumber, int totalBlocks): base(taskId, UpscallingStatuses.UpscallingBlock, "scalling block")
+        public BlockUpscalling(Guid taskId, int blockNumber, int totalBlocks): base(taskId, UpscallingStatuses.UpscallingBlock)
         {
             BlockNumber = blockNumber;
             TotalBlocks = totalBlocks;

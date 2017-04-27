@@ -25,7 +25,7 @@ namespace ImageSuperResolution.Common.Messages
 
         public override string ToString()
         {
-            return $"Image ({ImageRgba.Length} bytes) was upscaled to width {ImageWidth}px and height {ImageHeight}px for {ElapsedTime:g}";
+            return $"[{TaskId}] Image ({ImageRgba.Length} bytes) was upscaled to width {ImageWidth}px and height {ImageHeight}px for {ElapsedTime:g}";
         }
     }
 }

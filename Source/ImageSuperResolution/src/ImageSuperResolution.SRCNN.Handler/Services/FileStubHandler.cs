@@ -15,17 +15,19 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
     {
         private string _directoryInput;
         private string _directoryOutput;
+        private readonly bool _imageLoadingParallel;
 
         private ImageWatcherService _watcher;
 
         private readonly List<Task> _imagePrecessingTasks;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
-        public FileStubHandler() : base()
+        public FileStubHandler(bool imageLoadingParallel = true) : base()
         {
             InitFolders();
             _imagePrecessingTasks = new List<Task>();
             _cancellationTokenSource = new CancellationTokenSource();
+            _imageLoadingParallel = imageLoadingParallel;
         }
 
         public override void Start()
@@ -33,6 +35,9 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
             _watcher = new ImageWatcherService(_directoryInput);
             _watcher.OnNewFileFound += ProceedImage;
             _watcher.StartWatching();
+            Console.WriteLine("File stub service started");
+            Console.ReadKey();
+            Stop();
         }
 
         public override void Stop()
@@ -40,7 +45,9 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
             Console.WriteLine("Cancel requested.");
             _watcher.StopWatching();
             _cancellationTokenSource.Cancel();
-            Task.WaitAll(_imagePrecessingTasks.ToArray());                        
+            Task.WaitAll(_imagePrecessingTasks.ToArray());
+            Console.WriteLine("File stub service stoped");
+            Console.ReadKey();
         }
 
         private void ProceedImage(object sender, string pathToImage)
@@ -61,14 +68,25 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
 
                     var taskId = Guid.NewGuid();
 
-                    Task upscallingTask = Task.Run(
-                        () => srcnn.UpscaleImageAsync(taskId, rgba, width, height, ResultHandling,
-                            ProgressLogging), _cancellationTokenSource.Token);
-                    _imagePrecessingTasks.RemoveAll(t => t.IsCompleted);
-                    _imagePrecessingTasks.Add(upscallingTask);
-                }               
-                File.Delete(pathToImage);
+                    ProgressLogging(new ProgressMessage(taskId, UpscallingStatuses.Received));
 
+                    Task upscallingTask = Task.Run(
+                        async () =>
+                        {
+                            await srcnn.UpscaleImageAsync(taskId, rgba, width, height, ResultHandling,
+                                ProgressLogging);
+                        }, _cancellationTokenSource.Token);
+                    if (_imageLoadingParallel)
+                    {
+                        _imagePrecessingTasks.RemoveAll(t => t.IsCompleted);
+                        _imagePrecessingTasks.Add(upscallingTask);
+                    }
+                    else
+                    {
+                        upscallingTask.Wait();
+                    }
+                }
+                File.Delete(pathToImage);
             }
         }
 
@@ -80,9 +98,10 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
         private void ResultHandling(ResultMessage result)
         {
             var newImage = ImageUtils.GetBitmapFromRgba(result.ImageWidth, result.ImageHeight, result.ImageRgba);
-            string filename = $"{DateTime.Now:yy-MM-dd hh-mm-ss}.png";
+            string filename = $"{result.TaskId:N}_{(int)Math.Round(result.ElapsedTime.TotalSeconds)}sec.png";
             newImage.Save(Path.Combine(_directoryOutput, filename), ImageFormat.Png);
             Console.WriteLine(result);
+            ProgressLogging(new ProgressMessage(result.TaskId, UpscallingStatuses.SentResult));
         }
 
         private void InitFolders()

@@ -28,8 +28,8 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
 
         public QueueHandler() : base()
         {
-            _queueInput = "image_input";
-            _queueOutput = "image_output";
+            _queueInput = MqUtils.ImageForUpscallingQueue;
+            _queueOutput = MqUtils.UpscallingProgressQueue;
             _imagePrecessingTasks = new List<Task>();
             _cancellationTokenSource = new CancellationTokenSource();
         }
