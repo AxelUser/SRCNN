@@ -3,7 +3,7 @@
 
   "dependencies": {
     "BinaryFormatter": "1.0.2",
-    "CoreCompat.System.Drawing": "1.0.0-beta006",
+    "ImageSuperResolution.Common": "1.0.0-*",
     "NETStandard.Library": "1.6.1",
     "Newtonsoft.Json": "10.0.2",
     "RabbitMQ.Client": "4.1.3",

@@ -1,11 +1,8 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace ImageSuperResolution.SRCNN.Handler
+namespace ImageSuperResolution.Common
 {
     public static class ImageUtils
     {

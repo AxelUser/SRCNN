@@ -2,7 +2,7 @@
 using System.ComponentModel;
 using System.Reflection;
 
-namespace ImageSuperResolution.SRCNN.Handler.Messages.Helpers
+namespace ImageSuperResolution.Common.Messages.Helpers
 {
     public static class ReflectionHelpers
     {

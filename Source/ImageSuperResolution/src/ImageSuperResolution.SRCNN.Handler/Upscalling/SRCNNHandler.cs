@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using ImageSuperResolution.SRCNN.Handler.Messages;
+using ImageSuperResolution.Common.Messages;
 
 namespace ImageSuperResolution.SRCNN.Handler.Upscalling
 {

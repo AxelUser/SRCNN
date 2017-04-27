@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using ImageSuperResolution.SRCNN.Handler.Messages.Helpers;
+using ImageSuperResolution.Common.Messages.Helpers;
 
-namespace ImageSuperResolution.SRCNN.Handler.Messages
+namespace ImageSuperResolution.Common.Messages
 {
     public class ProgressMessage
     {

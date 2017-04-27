@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageSuperResolution.SRCNN.
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ImageSuperResolution.SRCNN.ConsoleApp", "src\ImageSuperResolution.SRCNN.ConsoleApp\ImageSuperResolution.SRCNN.ConsoleApp.xproj", "{88871A7E-DA04-40CD-B18D-C0DE35695364}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "ImageSuperResolution.Common", "ImageSuperResolution.Common\ImageSuperResolution.Common.xproj", "{42A178EC-3EBF-4B08-B884-0639A50D0D52}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,10 @@ Global
 		{88871A7E-DA04-40CD-B18D-C0DE35695364}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{88871A7E-DA04-40CD-B18D-C0DE35695364}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{88871A7E-DA04-40CD-B18D-C0DE35695364}.Release|Any CPU.Build.0 = Release|Any CPU
+		{42A178EC-3EBF-4B08-B884-0639A50D0D52}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{42A178EC-3EBF-4B08-B884-0639A50D0D52}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{42A178EC-3EBF-4B08-B884-0639A50D0D52}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{42A178EC-3EBF-4B08-B884-0639A50D0D52}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -49,5 +55,6 @@ Global
 		{0373D2B1-69B3-404C-8C08-51A353A15439} = {0666E616-E749-4E1D-ADF4-D736EAEEFC50}
 		{37798874-5A32-4CC1-BC1A-27843C32874F} = {0666E616-E749-4E1D-ADF4-D736EAEEFC50}
 		{88871A7E-DA04-40CD-B18D-C0DE35695364} = {0666E616-E749-4E1D-ADF4-D736EAEEFC50}
+		{42A178EC-3EBF-4B08-B884-0639A50D0D52} = {0666E616-E749-4E1D-ADF4-D736EAEEFC50}
 	EndGlobalSection
 EndGlobal

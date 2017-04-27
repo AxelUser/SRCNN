@@ -5,7 +5,8 @@ using System.Drawing.Imaging;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using ImageSuperResolution.SRCNN.Handler.Messages;
+using ImageSuperResolution.Common;
+using ImageSuperResolution.Common.Messages;
 using ImageSuperResolution.SRCNN.Handler.Upscalling;
 
 namespace ImageSuperResolution.SRCNN.Handler.Services
