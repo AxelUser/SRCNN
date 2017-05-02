@@ -5,7 +5,7 @@
     <title>SRCNN Test</title>
     <link href="https://fonts.googleapis.com/css?family=Amatic+SC:400,700" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css" />
-    <link rel="stylesheet" href="styles/styles.processed.css" />
+    <link rel="stylesheet" href="css/styles.css" />
 </head>
 <body>
     <div id="app" class="container">
@@ -26,10 +26,10 @@
                 <button class="controls__button" v-show="model" @click="startProcess">Upscale</button>
             </div>
             <div v-if="isReady" class="link">
-                <a :href="upscaledFile" download="srcnn.png" target="_blank">Download</button>
+                <a :href="upscaledFile" download="srcnn.png" target="_blank">Download</a>
             </div>
         </template>
     </div>
-    <script data-main="js/main.js" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.3/require.min.js"></script>
+    <script data-main="js/site.js" src="lib/requirejs/require.js"></script>
 </body>
 </html>

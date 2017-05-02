@@ -1,16 +1,16 @@
-﻿[v-cloak] { display: none }
-
+﻿[v-cloak] {
+  display: none;
+}
 body {
   font-family: 'Amatic SC', cursive;
   font-size: 22px;
-  background: linear-gradient(to left, #00c6ff , #0072ff);
+  background: linear-gradient(to left, #00c6ff, #0072ff);
   color: #E7FFFB;
   height: 100vh;
   display: flex;
   justify-content: center;
   align-items: center;
 }
-
 .container {
   text-align: center;
   width: 100%;
@@ -19,61 +19,54 @@ body {
   justify-content: center;
   align-items: center;
 }
-
 .header {
   font-size: 3em;
 }
-
 .image-preview {
   height: 400px;
   margin: auto;
   display: block;
 }
-
 .image-toggle {
   font-size: 0.9em;
   cursor: pointer;
   margin-top: 5px;
 }
-
 .image-info {
   margin-top: 10px;
   font-size: 2em;
 }
-
 .message {
   font-size: 2em;
 }
-
 .controls {
   width: 300px;
   display: flex;
   justify-content: space-between;
-  &__button {
-    font-family: inherit;
-    font-size: 1.5em;
-    font-weight: 600;
-    color: white;
-    border: none;
-    padding: 2px 15px;
-    background-color: rgba(111, 64, 255, 0.62);
-    &_cancel {
-      background-color: rgba(255, 0, 0, 0.76); 
-    }    
-  }
 }
-
+.controls__button {
+  font-family: inherit;
+  font-size: 1.5em;
+  font-weight: 600;
+  color: white;
+  border: none;
+  padding: 2px 15px;
+  background-color: rgba(111, 64, 255, 0.62);
+}
+.controls__button_cancel {
+  background-color: rgba(255, 0, 0, 0.76);
+}
 .link {
   font-size: 1.5em;
   background-color: rgba(111, 64, 255, 0.62);
   padding: 5px;
   margin-top: 20px;
   width: 120px;
-  & a {
-    color: inherit;
-    &:visited {
-      text-decoration: none;
-      color: inherit;
-    }    
-  }
+}
+.link a {
+  color: inherit;
+}
+.link a:visited {
+  text-decoration: none;
+  color: inherit;
 }
