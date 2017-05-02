@@ -1,0 +1,35 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>SRCNN Test</title>
+    <link href="https://fonts.googleapis.com/css?family=Amatic+SC:400,700" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/normalize/5.0.0/normalize.min.css" />
+    <link rel="stylesheet" href="styles/styles.processed.css" />
+</head>
+<body>
+    <div id="app" class="container">
+        <div v-if="!getImagePreviewSource">
+            <h2 class="header">Select an image for 2x upscaling</h2>
+            <input type="file" @change="onFileChange">
+        </div>
+        <template v-else v-cloak>
+            <img class="image-preview" id="main-image" :src="getImagePreviewSource" />
+            <div class="image-toggle" v-show="isReady" @click=toggleImage>{{toggleButtonText}}</div>
+            <div class="image-info">
+                <div>Height: {{currentImageHeight}}px</div>
+                <div>Width: {{currentImageWidth}}px</div>
+            </div>
+            <div class="message">{{progressMessage}}</div>
+            <div class="controls">
+                <button class="controls__button controls__button_cancel" @click="cancel">{{cancelButtonText}}</button>
+                <button class="controls__button" v-show="model" @click="startProcess">Upscale</button>
+            </div>
+            <div v-if="isReady" class="link">
+                <a :href="upscaledFile" download="srcnn.png" target="_blank">Download</button>
+            </div>
+        </template>
+    </div>
+    <script data-main="js/main.js" src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.3/require.min.js"></script>
+</body>
+</html>

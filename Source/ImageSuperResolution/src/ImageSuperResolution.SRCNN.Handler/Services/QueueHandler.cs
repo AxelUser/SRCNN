@@ -57,38 +57,45 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
             _inputChannel = _connectionToMq.CreateModel();
             _outputChannel = _connectionToMq.CreateModel();
 
-            InitConsumer(_inputChannel);
+            InitConsumer(_connectionToMq);
         }        
 
-        private void InitConsumer(IModel inputChannel)
+        private void InitConsumer(IConnection connection)
         {
-            inputChannel.QueueDeclare(
-                queue: _queueInput,
-                durable: false,
-                exclusive: false,
-                autoDelete: false,
-                arguments: null);
-            inputChannel.BasicQos(0, 1, false);
+            using (var inputChannel = connection.CreateModel())
+            {
+                inputChannel.QueueDeclare(
+                    queue: _queueInput,
+                    durable: false,
+                    exclusive: false,
+                    autoDelete: false,
+                    arguments: null);
+                inputChannel.BasicQos(0, 1, false);
 
-            var imageConsumer = new EventingBasicConsumer(inputChannel);
+                var imageConsumer = new EventingBasicConsumer(inputChannel);
 
-            imageConsumer.Received += MessageReceived;
+                imageConsumer.Received += MessageReceived;
 
-            _imageConsumerTag = inputChannel.BasicConsume(_queueInput, false, imageConsumer);
+                _imageConsumerTag = inputChannel.BasicConsume(_queueInput, false, imageConsumer);
+            }
+
         }
 
-        private void PublishMessage(IModel outputChannel, Guid taskId, MqMessage message)
+        private void PublishMessage(IConnection connection, Guid taskId, MqMessage message)
         {
-            var props = outputChannel.CreateBasicProperties();
-            props.CorrelationId = taskId.ToString();
+            using (var outputChannel = connection.CreateModel())
+            {
+                var props = outputChannel.CreateBasicProperties();
+                props.CorrelationId = taskId.ToString();
 
-            message.TaskId = taskId;
+                message.TaskId = taskId;
 
-            var converter = new BinaryConverter();
-            byte[] messageBody = converter.Serialize(message);
+                var converter = new BinaryConverter();
+                byte[] messageBody = converter.Serialize(message);
 
-            outputChannel.BasicPublish(exchange: "", routingKey: _queueOutput, 
-                basicProperties: props, body: messageBody);
+                outputChannel.BasicPublish(exchange: "", routingKey: _queueOutput,
+                    basicProperties: props, body: messageBody);
+            }
         }
 
         private void MessageReceived(object sender, BasicDeliverEventArgs e)
@@ -135,7 +142,7 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
                 Content = ImageUtils.SerializeImage(newImage)
             };
 
-            PublishMessage(_outputChannel, result.TaskId, message);
+            PublishMessage(_connectionToMq, result.TaskId, message);
 
         }
 
@@ -146,7 +153,7 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
                 Message = progressMessage.ToString()
             };
 
-            PublishMessage(_outputChannel, progressMessage.TaskId, message);
+            PublishMessage(_connectionToMq, progressMessage.TaskId, message);
         }
     }
 }
