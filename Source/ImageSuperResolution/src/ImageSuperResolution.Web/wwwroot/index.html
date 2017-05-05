@@ -23,7 +23,7 @@
             <div class="message">{{progressMessage}}</div>
             <div class="controls">
                 <button class="controls__button controls__button_cancel" @click="cancel">{{cancelButtonText}}</button>
-                <button class="controls__button" v-show="model" @click="startProcess">Upscale</button>
+                <button class="controls__button" @click="startProcess">Upscale</button>
             </div>
             <div v-if="isReady" class="link">
                 <a :href="upscaledFile" download="srcnn.png" target="_blank">Download</a>

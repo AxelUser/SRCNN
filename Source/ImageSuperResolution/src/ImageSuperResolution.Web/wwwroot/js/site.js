@@ -8,12 +8,16 @@
     });
     require(['vue', 'vue-resource'],
         (Vue, VueResource) => {
+
+            Vue.use(VueResource);
+
             var model = new Vue({
                 el: "#app",
                 data: {
                     image: null,
                     imageHeight: 0,
                     imageWidth: 0,
+                    uploadedFile: null,
                     upscaledFile: null,
                     scale: 2,
                     progressRatio: 0,
@@ -49,6 +53,10 @@
                     toggleImage() {
                         this.isShownModified = !this.isShownModified;
                     },
+                    uploadFile() {
+                        this.$http.post("/api/Upscalling/Upload", this.uploadedFile)
+                            .then(response => alert("Uploaded"), response => alert("Fail"));
+                    },
                     startProcess() {
                         let canvas = document.createElement('canvas');
                         let context = canvas.getContext('2d');
@@ -56,13 +64,6 @@
                         canvas.height = this.imageHeight;
                         context.drawImage(this.image, 0, 0);
                         let imageData = context.getImageData(0, 0, this.imageWidth, this.imageHeight);
-                        this.restartWorker();
-                        worker.postMessage({
-                            scale2xModel: this.model,
-                            noiseModel: null,
-                            scale: this.scale,
-                            imageData: imageData
-                        });
                         this.isRunning = true;
                     },
                     onFileChange(e) {
@@ -70,6 +71,9 @@
                         if (!files.length)
                             return;
                         this.createImage(files[0]);
+                        const uploadedFile = new FormData();
+                        uploadedFile.append("Image", files[0]);
+                        this.uploadedFile = uploadedFile;
                     },
                     createImage(file) {
                         const reader = new FileReader();
