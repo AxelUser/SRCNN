@@ -53,14 +53,14 @@ namespace ImageSuperResolution.Web
             }
 
             app.UseDefaultFiles();
-            app.UseStaticFiles();            
+            app.UseStaticFiles();
 
-            //app.UseMvc(routes =>
-            //{
-            //    routes.MapRoute(
-            //        name: "default",
-            //        template: "{controller=Home}/{action=Index}/{id?}");
-            //});
+            app.UseMvc(routes =>
+            {
+                routes.MapRoute(
+                    name: "api",
+                    template: "api/{controller}/{action}");
+            });
         }
     }
 }

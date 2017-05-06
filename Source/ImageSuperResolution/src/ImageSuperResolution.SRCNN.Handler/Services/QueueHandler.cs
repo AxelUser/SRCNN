@@ -62,22 +62,26 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
 
         private void InitConsumer(IConnection connection)
         {
-            using (var inputChannel = connection.CreateModel())
+            var inputChannel = connection.CreateModel();
+            
+            inputChannel.QueueDeclare(
+                queue: _queueInput,
+                durable: false,
+                exclusive: false,
+                autoDelete: false,
+                arguments: null);
+            inputChannel.BasicQos(0, 1, false);
+
+            var imageConsumer = new EventingBasicConsumer(inputChannel);
+
+            imageConsumer.Received += (sender, ea) =>
             {
-                inputChannel.QueueDeclare(
-                    queue: _queueInput,
-                    durable: false,
-                    exclusive: false,
-                    autoDelete: false,
-                    arguments: null);
-                inputChannel.BasicQos(0, 1, false);
+                CreateTask(ea);
+                inputChannel.BasicAck(ea.DeliveryTag, false);
+            };
 
-                var imageConsumer = new EventingBasicConsumer(inputChannel);
-
-                imageConsumer.Received += MessageReceived;
-
-                _imageConsumerTag = inputChannel.BasicConsume(_queueInput, false, imageConsumer);
-            }
+            _imageConsumerTag = inputChannel.BasicConsume(_queueInput, false, imageConsumer);
+            
 
         }
 
@@ -98,7 +102,7 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
             }
         }
 
-        private void MessageReceived(object sender, BasicDeliverEventArgs e)
+        private void CreateTask(BasicDeliverEventArgs e)
         {
             byte[] imageData = e.Body;
             Guid taskId;

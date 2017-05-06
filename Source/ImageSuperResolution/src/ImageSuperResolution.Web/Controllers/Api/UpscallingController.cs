@@ -11,7 +11,6 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ImageSuperResolution.Web.Controllers.Api
 {
-    [Route("api/[controller]")]
     public class UpscallingController : Controller
     {
         private readonly IUpscallingService _upscallingService;

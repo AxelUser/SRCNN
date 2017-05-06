@@ -64,6 +64,7 @@
                         canvas.height = this.imageHeight;
                         context.drawImage(this.image, 0, 0);
                         let imageData = context.getImageData(0, 0, this.imageWidth, this.imageHeight);
+                        this.uploadFile();
                         this.isRunning = true;
                     },
                     onFileChange(e) {
