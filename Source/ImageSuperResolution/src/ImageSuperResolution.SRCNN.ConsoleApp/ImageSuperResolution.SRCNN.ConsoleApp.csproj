@@ -16,4 +16,10 @@
     <ProjectReference Include="..\ImageSuperResolution.SRCNN.Handler\ImageSuperResolution.SRCNN.Handler.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update=".dockerignore">
+      <DependentUpon>Dockerfile</DependentUpon>
+    </None>
+  </ItemGroup>
+
 </Project>

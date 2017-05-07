@@ -2,7 +2,7 @@
 
 namespace ImageSuperResolution.Common.Messages
 {
-    public class ResultMessage
+    public class ResultMessage: ITaskMessage
     {
         public Guid TaskId { get; set; }
 
@@ -13,6 +13,7 @@ namespace ImageSuperResolution.Common.Messages
         public int ImageWidth { get; set; }
 
         public int ImageHeight { get; set; }
+        
 
         public ResultMessage(Guid taskId, byte[] image, int width, int height, TimeSpan time)
         {

@@ -3,7 +3,7 @@ using ImageSuperResolution.Common.Messages.Helpers;
 
 namespace ImageSuperResolution.Common.Messages
 {
-    public class ProgressMessage
+    public class ProgressMessage: ITaskMessage
     {
         public Guid TaskId { get; set; }
 

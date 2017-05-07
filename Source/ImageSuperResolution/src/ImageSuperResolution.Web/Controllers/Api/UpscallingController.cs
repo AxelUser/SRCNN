@@ -27,10 +27,10 @@ namespace ImageSuperResolution.Web.Controllers.Api
         }
 
         [HttpPost]
-        public Guid Upload(IFormFile image)
+        public async Task<Guid> Upload(IFormFile image)
         {
             byte[] imageBytes = ImageUtils.ReadToEnd(image.OpenReadStream());
-            return _upscallingService.SendFile(imageBytes);
+            return await _upscallingService.SendFile(imageBytes);
         }
 
         
