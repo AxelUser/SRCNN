@@ -8,8 +8,9 @@ using BinaryFormatter;
 using ImageSuperResolution.Common;
 using ImageSuperResolution.Common.Messages;
 using ImageSuperResolution.SRCNN.Handler.Upscalling;
-using RabbitMQ.Client;
-using RabbitMQ.Client.Events;
+using EasyNetQ;
+using ImageSuperResolution.Common.Messages.QueueCommands;
+using ImageSuperResolution.Common.Messages.QueueEvents;
 
 namespace ImageSuperResolution.SRCNN.Handler.Services
 {
@@ -18,146 +19,112 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
         private readonly string _queueInput;
         private readonly string _queueOutput;
 
-        private string _imageConsumerTag;
-        private IConnection _connectionToMq;
-        private IModel _inputChannel;
-        private IModel _outputChannel;
-
         private readonly List<Task> _imagePrecessingTasks;
         private readonly CancellationTokenSource _cancellationTokenSource;
+
+        private IBus mqBus;
+        private IDisposable mqReceiver;
 
         public QueueHandler() : base()
         {
             _queueInput = MqUtils.ImageForUpscallingQueue;
-            _queueOutput = MqUtils.UpscallingProgressQueue;
+            _queueOutput = MqUtils.UpscallingResultQueue;
             _imagePrecessingTasks = new List<Task>();
             _cancellationTokenSource = new CancellationTokenSource();
         }
 
         public override void Start()
         {
-            ConnectToMq();
+            if(mqBus == null || !mqBus.IsConnected)
+            {
+                mqReceiver?.Dispose();
+                mqBus = RabbitHutch.CreateBus("host=localhost");
+            }
+
+            mqReceiver = mqBus.Receive<SendImage>(MqUtils.ImageForUpscallingQueue, ProceedImage);
         }
 
         public override void Stop()
         {
-            _inputChannel.BasicCancel(_imageConsumerTag);
-            _connectionToMq.Close();
+            mqReceiver.Dispose();
+            _cancellationTokenSource.Cancel();
+            Task.WaitAll(_imagePrecessingTasks.ToArray());
+            mqBus.Dispose();
         }
 
-        private void ConnectToMq()
+        private Task ProceedImage(SendImage message)
         {
-            
-            var factory = new ConnectionFactory()
+            return Task.Run(() =>
             {
-                HostName = "localhost"
-            };
-
-            _connectionToMq = factory.CreateConnection();
-            _inputChannel = _connectionToMq.CreateModel();
-            _outputChannel = _connectionToMq.CreateModel();
-
-            InitConsumer(_connectionToMq);
-        }        
-
-        private void InitConsumer(IConnection connection)
-        {
-            var inputChannel = connection.CreateModel();
-            
-            inputChannel.QueueDeclare(
-                queue: _queueInput,
-                durable: false,
-                exclusive: false,
-                autoDelete: false,
-                arguments: null);
-            inputChannel.BasicQos(0, 1, false);
-
-            var imageConsumer = new EventingBasicConsumer(inputChannel);
-
-            imageConsumer.Received += (sender, ea) =>
-            {
-                CreateTask(ea);
-                inputChannel.BasicAck(ea.DeliveryTag, false);
-            };
-
-            _imageConsumerTag = inputChannel.BasicConsume(_queueInput, false, imageConsumer);
-            
-
-        }
-
-        private void PublishMessage(IConnection connection, Guid taskId, MqMessage message)
-        {
-            using (var outputChannel = connection.CreateModel())
-            {
-                var props = outputChannel.CreateBasicProperties();
-                props.CorrelationId = taskId.ToString();
-
-                message.TaskId = taskId;
-
-                var converter = new BinaryConverter();
-                byte[] messageBody = converter.Serialize(message);
-
-                outputChannel.BasicPublish(exchange: "", routingKey: _queueOutput,
-                    basicProperties: props, body: messageBody);
-            }
-        }
-
-        private void CreateTask(BasicDeliverEventArgs e)
-        {
-            byte[] imageData = e.Body;
-            Guid taskId;
-            bool hasTaskId = Guid.TryParse(e.BasicProperties.CorrelationId, out taskId);
-
-            bool isValid = imageData != null && hasTaskId;
-
-            if (isValid && !_cancellationTokenSource.IsCancellationRequested)
-            {
-                using (var originalImage = new Bitmap(ImageUtils.DeserializeImage(imageData)))
+                if (!_cancellationTokenSource.IsCancellationRequested)
                 {
-                    byte[] rgba = ImageUtils.GetRgbaFromBitmap(originalImage);
-                    SRCNNHandler srcnn = new SRCNNHandler()
+                    using(var ms = new MemoryStream(message.Image))
                     {
-                        Scale = 2,
-                        ScaleModel = Model
-                    };
+                        using (var originalImage = new Bitmap(ms))
+                        {
+                            var rgba = ImageUtils.GetRgbaFromBitmap(originalImage);
+                            SRCNNHandler srcnn = new SRCNNHandler()
+                            {
+                                Scale = 2,
+                                ScaleModel = Model
+                            };
 
-                    int width = originalImage.Width;
-                    int height = originalImage.Height;
+                            int width = originalImage.Width;
+                            int height = originalImage.Height;
 
+                            var taskId = Guid.NewGuid();
 
+                            ProgressLogging(new ProgressMessage(taskId, UpscallingStatuses.Received));
 
-                    Task upscallingTask = Task.Run(
-                        () => srcnn.UpscaleImageAsync(taskId, rgba, width, height, ResultHandling,
-                            ProgressLogging), _cancellationTokenSource.Token);
-                    _imagePrecessingTasks.RemoveAll(t => t.IsCompleted);
-                    _imagePrecessingTasks.Add(upscallingTask);
+                            Task upscallingTask = Task.Run(
+                                async () =>
+                                {
+                                    await srcnn.UpscaleImageAsync(taskId, rgba, width, height, ResultHandling,
+                                        ProgressLogging);
+                                }, _cancellationTokenSource.Token);
+
+                            _imagePrecessingTasks.RemoveAll(t => t.IsCompleted);
+                            _imagePrecessingTasks.Add(upscallingTask);
+                        }
+                    }
                 }
-            }
-
+            });
         }
 
         private void ResultHandling(ResultMessage result)
         {
-            var newImage = ImageUtils.GetBitmapFromRgba(result.ImageWidth, result.ImageHeight, result.ImageRgba);
-
-            MqMessage message = new MqMessage()
+            Bitmap resultBitmap = ImageUtils.GetBitmapFromRgba(result.ImageWidth, result.ImageHeight, result.ImageRgba);
+            var resultMqEvent = new TaskFinished()
             {
-                Message = result.ToString(),
-                Content = ImageUtils.SerializeImage(newImage)
+                TaskId = result.TaskId,
+                Image = ImageUtils.SerializeImage(resultBitmap),
+                Height = result.ImageHeight,
+                Width = result.ImageWidth,
+                ElapsedTime = result.ElapsedTime
             };
 
-            PublishMessage(_connectionToMq, result.TaskId, message);
-
+            mqBus.Send(MqUtils.UpscallingPregressQueue, resultMqEvent); 
         }
 
         private void ProgressLogging(ProgressMessage progressMessage)
         {
-            MqMessage message = new MqMessage()
+            var mqProgressEvent = new TaskProgress()
             {
-                Message = progressMessage.ToString()
+                TaskId = progressMessage.TaskId,
+                Status = progressMessage.Phase,
+                Message = progressMessage.Message
             };
 
-            PublishMessage(_connectionToMq, progressMessage.TaskId, message);
+            if(progressMessage is BlockUpscalling)
+            {
+                var upscallingProgressMessage = progressMessage as BlockUpscalling;
+
+                mqProgressEvent.BlockNumber = upscallingProgressMessage.BlockNumber;
+                mqProgressEvent.BlocksCount = upscallingProgressMessage.TotalBlocks;
+                mqProgressEvent.ProgressRatio = upscallingProgressMessage.Percent;
+            }
+
+            mqBus.Send(MqUtils.UpscallingResultQueue, mqProgressEvent);
         }
     }
 }

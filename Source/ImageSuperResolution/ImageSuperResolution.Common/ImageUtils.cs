@@ -61,16 +61,10 @@ namespace ImageSuperResolution.Common
 
         public static byte[] SerializeImage(Bitmap image)
         {
-            MemoryStream ms = new MemoryStream();
-            image.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-            return ms.ToArray();
-        }
-
-        public static Image GetPngImage(byte[] imageBytes)
-        {
-            using (MemoryStream mStream = new MemoryStream(imageBytes))
+            using (MemoryStream ms = new MemoryStream())
             {
-                return Image.FromStream(mStream);
+                image.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+                return ms.ToArray();
             }
         }
 

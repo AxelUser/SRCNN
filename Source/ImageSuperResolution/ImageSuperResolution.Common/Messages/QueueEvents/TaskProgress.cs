@@ -14,7 +14,7 @@ namespace ImageSuperResolution.Common.Messages.QueueEvents
 
         public int BlocksCount { get; set; }
 
-        public double ProgressRatio { get; set; }
+        public int? ProgressRatio { get; set; }
 
         public string Message { get; set; }
 
