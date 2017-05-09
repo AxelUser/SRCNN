@@ -12,7 +12,7 @@ namespace ImageSuperResolution.Common
     {
         public const string ImageForUpscallingQueue = "image_input";
 
-        public const string UpscallingPregressQueue = "image_progress";
+        public const string UpscallingProgressQueue = "image_progress";
 
         public const string UpscallingResultQueue = "image_output";
 

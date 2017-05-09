@@ -30,7 +30,7 @@ namespace ImageSuperResolution.Web
         {
             // Add framework services.
             services.AddMvc();
-            services.AddTransient<IUpscallingService, UpscallingService>();
+            services.AddSingleton<IUpscallingService>(new UpscallingService());
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

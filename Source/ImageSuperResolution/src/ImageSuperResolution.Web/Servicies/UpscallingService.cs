@@ -11,8 +11,38 @@ using ImageSuperResolution.Common;
 
 namespace ImageSuperResolution.Web.Servicies
 {
-    public class UpscallingService : IUpscallingService
+    public class UpscallingService : IUpscallingService, IDisposable
     {
+        private IBus _mqBus;
+        private IDisposable progressReceiver;
+        private IDisposable resultReceiver;
+
+
+        public UpscallingService()
+        {
+            _mqBus = RabbitHutch.CreateBus("host=localhost");
+
+            _mqBus.Receive<TaskProgress>(MqUtils.UpscallingProgressQueue, OnProgress);
+
+            _mqBus.Receive<TaskFinished>(MqUtils.UpscallingProgressQueue, OnResult);
+        }
+
+        private Task OnProgress(TaskProgress progressMessage)
+        {
+            return Task.Run(() =>
+            {
+
+            });
+        }
+
+        private Task OnResult(TaskFinished resultMessage)
+        {
+            return Task.Run(() =>
+            {
+
+            });
+        }
+
         public TaskProgress GetProgress(Guid ticket)
         {
 
@@ -26,38 +56,19 @@ namespace ImageSuperResolution.Web.Servicies
 
         public async Task<Guid> SendFile(byte[] image)
         {
-            using (var bus = RabbitHutch.CreateBus("host=localhost"))
+            var taskId = Guid.NewGuid();
+            await _mqBus.SendAsync(MqUtils.ImageForUpscallingQueue, new SendImage()
             {
-                var taskId = Guid.NewGuid();
-                await bus.SendAsync(MqUtils.ImageForUpscallingQueue, new SendImage()
-                {
-                    TaskId = taskId,
-                    Image = image
-                });
-                return taskId;
-            }
-            //var factory = new ConnectionFactory() { HostName = "localhost" };
-            //using (var mqConnection = factory.CreateConnection())
-            //{
-            //    using (var mqChannel = mqConnection.CreateModel())
-            //    {
-            //        Guid taskId = new Guid();
-            //        mqChannel.QueueDeclare(queue: MqUtils.ImageForUpscallingQueue,
-            //            durable: false,
-            //            exclusive: false,
-            //            autoDelete: false,
-            //            arguments: null);
+                TaskId = taskId,
+                Image = image
+            });
+            return taskId;
+        }
 
-            //        var props = mqChannel.CreateBasicProperties();
-            //        props.CorrelationId = taskId.ToString();
-
-            //        mqChannel.BasicPublish(exchange: "",
-            //            routingKey: MqUtils.ImageForUpscallingQueue,
-            //            basicProperties: props,
-            //            body: image);
-            //        return taskId;
-            //    }
-            //}
+        public void Dispose()
+        {
+            progressReceiver?.Dispose();
+            resultReceiver?.Dispose();
         }
     }
 }

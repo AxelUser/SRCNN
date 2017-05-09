@@ -103,7 +103,7 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
                 ElapsedTime = result.ElapsedTime
             };
 
-            mqBus.Send(MqUtils.UpscallingPregressQueue, resultMqEvent); 
+            mqBus.Send(MqUtils.UpscallingProgressQueue, resultMqEvent); 
         }
 
         private void ProgressLogging(ProgressMessage progressMessage)
