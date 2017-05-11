@@ -4,10 +4,8 @@ using System.Text;
 
 namespace ImageSuperResolution.Common.Messages.QueueEvents
 {
-    public class TaskProgress: ITaskMessage
+    public class TaskProgress: QueueMessageBase
     {
-        public Guid TaskId { get; set; }
-
         public UpscallingStatuses Status { get; set; }
 
         public int BlockNumber { get; set; }

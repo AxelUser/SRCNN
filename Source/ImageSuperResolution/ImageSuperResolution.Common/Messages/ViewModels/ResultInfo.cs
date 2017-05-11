@@ -2,9 +2,9 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace ImageSuperResolution.Common.Messages.QueueEvents
+namespace ImageSuperResolution.Common.Messages.ViewModels
 {
-    public class TaskFinished: QueueMessageBase
+    public class ResultInfo
     {
         public int Width { get; set; }
 
@@ -12,6 +12,6 @@ namespace ImageSuperResolution.Common.Messages.QueueEvents
 
         public TimeSpan ElapsedTime { get; set; }
 
-        public byte[] Image { get; set; }
+        public string FilePath { get; set; }
     }
 }

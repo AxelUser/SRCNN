@@ -6,8 +6,8 @@ using ImageSuperResolution.Common;
 using ImageSuperResolution.Web.Servicies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-
-// For more information on enabling Web API for empty projects, visit http://go.microsoft.com/fwlink/?LinkID=397860
+using ImageSuperResolution.Common.Messages.ViewModels;
+using ImageSuperResolution.Common.Messages.QueueEvents;
 
 namespace ImageSuperResolution.Web.Controllers.Api
 {
@@ -19,11 +19,25 @@ namespace ImageSuperResolution.Web.Controllers.Api
         {
             _upscallingService = upscallingService;
         }
-        [HttpGet("{ticket}")]
-        public string GetProgress(Guid ticket)
+
+        [HttpGet]
+        public IEnumerable<TaskProgress> GetProgress(Guid ticket)
         {
-            var progressMessage = _upscallingService.GetProgress(ticket);
-            return progressMessage.Message;
+            var progressMessages = _upscallingService.GetProgress(ticket);
+            return progressMessages;
+        }
+
+        [HttpGet]
+        public ResultInfo GetResult(Guid ticket)
+        {
+            var resultInfo = _upscallingService.GetResultInfo(ticket);
+            return resultInfo;
+        }
+
+        [HttpPost]
+        public bool Clear(Guid ticket)
+        {
+            return _upscallingService.ClearEvents(ticket);
         }
 
         [HttpPost]

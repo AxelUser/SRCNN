@@ -1,7 +1,8 @@
 ﻿using System;
-using ImageSuperResolution.Common.Messages;
 using ImageSuperResolution.Common.Messages.QueueEvents;
 using System.Threading.Tasks;
+using System.Collections.Generic;
+using ImageSuperResolution.Common.Messages.ViewModels;
 
 namespace ImageSuperResolution.Web.Servicies
 {
@@ -9,8 +10,10 @@ namespace ImageSuperResolution.Web.Servicies
     {
         Task<Guid> SendFile(byte[] image);
 
-        TaskProgress GetProgress(Guid ticket);
+        IEnumerable<TaskProgress> GetProgress(Guid ticket);
 
-        TaskProgress GetResult(Guid ticket);
+        ResultInfo GetResultInfo(Guid ticket);
+
+        bool ClearEvents(Guid ticket);
     }
 }

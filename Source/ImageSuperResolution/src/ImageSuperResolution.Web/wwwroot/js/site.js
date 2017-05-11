@@ -23,7 +23,9 @@
                     progressRatio: 0,
                     progressMessage: null,
                     isRunning: false,
-                    isShownModified: false
+                    isShownModified: false,
+                    progressPooling: null,
+                    ticket: null
                 },
                 computed: {
                     cancelButtonText() {
@@ -55,7 +57,32 @@
                     },
                     uploadFile() {
                         this.$http.post("/api/Upscalling/Upload", this.uploadedFile)
-                            .then(response => alert("Uploaded"), response => alert("Fail"));
+                            .then(response => {  
+                                this.ticket = response.body;
+                            }, response => console.log("Upload Fail"));
+                    },
+                    getProgress() {
+                        this.$http.get("/api/Upscalling/GetProgress", { params: { ticket: this.ticket } })
+                            .then(response => {
+                                if (response.body) {
+                                    console.log(response.body);
+                                }
+                               
+                            }, response => console.log("Progress Fail"));
+                    },
+                    getResult() {
+                        this.$http.get("/api/Upscalling/GetResult", { params: { ticket: this.ticket } })
+                            .then(response => {
+                                if (response.body) {
+                                    console.log(response.body);
+                                }
+                            }, response => console.log("Rusult Fail"));
+                    },
+                    initPooling() {
+                        this.progressPooling = setInterval(() => this.getProgress(), 5000);
+                    },
+                    stopPooling() {
+                        clearInterval(this.progressPooling());
                     },
                     startProcess() {
                         let canvas = document.createElement('canvas');
@@ -66,6 +93,7 @@
                         let imageData = context.getImageData(0, 0, this.imageWidth, this.imageHeight);
                         this.uploadFile();
                         this.isRunning = true;
+                        this.initPooling();
                     },
                     onFileChange(e) {
                         let files = e.target.files || e.dataTransfer.files;

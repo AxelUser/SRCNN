@@ -22,8 +22,8 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
         private readonly List<Task> _imagePrecessingTasks;
         private readonly CancellationTokenSource _cancellationTokenSource;
 
-        private IBus mqBus;
-        private IDisposable mqReceiver;
+        private IBus _mqBus;
+        private IDisposable _mqReceiver;
 
         public QueueHandler() : base()
         {
@@ -35,21 +35,25 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
 
         public override void Start()
         {
-            if(mqBus == null || !mqBus.IsConnected)
+            Console.WriteLine("Queue service started");
+            if (_mqBus == null || !_mqBus.IsConnected)
             {
-                mqReceiver?.Dispose();
-                mqBus = RabbitHutch.CreateBus("host=localhost");
+                _mqReceiver?.Dispose();
+                _mqBus = RabbitHutch.CreateBus("host=localhost");
             }
 
-            mqReceiver = mqBus.Receive<SendImage>(MqUtils.ImageForUpscallingQueue, ProceedImage);
+            _mqReceiver = _mqBus.Receive<SendImage>(MqUtils.ImageForUpscallingQueue, ProceedImage);
         }
 
         public override void Stop()
         {
-            mqReceiver.Dispose();
+            Console.WriteLine("Cancel requested.");
+            _mqReceiver.Dispose();
             _cancellationTokenSource.Cancel();
             Task.WaitAll(_imagePrecessingTasks.ToArray());
-            mqBus.Dispose();
+            _mqBus.Dispose();
+            Console.WriteLine("Queue service stoped");
+            Console.ReadKey();
         }
 
         private Task ProceedImage(SendImage message)
@@ -72,14 +76,12 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
                             int width = originalImage.Width;
                             int height = originalImage.Height;
 
-                            var taskId = Guid.NewGuid();
-
-                            ProgressLogging(new ProgressMessage(taskId, UpscallingStatuses.Received));
+                            ProgressLogging(new ProgressMessage(message.TaskId, UpscallingStatuses.Received));
 
                             Task upscallingTask = Task.Run(
                                 async () =>
                                 {
-                                    await srcnn.UpscaleImageAsync(taskId, rgba, width, height, ResultHandling,
+                                    await srcnn.UpscaleImageAsync(message.TaskId, rgba, width, height, ResultHandling,
                                         ProgressLogging);
                                 }, _cancellationTokenSource.Token);
 
@@ -103,7 +105,8 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
                 ElapsedTime = result.ElapsedTime
             };
 
-            mqBus.Send(MqUtils.UpscallingProgressQueue, resultMqEvent); 
+            _mqBus.Send(MqUtils.UpscallingResultQueue, resultMqEvent);
+            Console.WriteLine(result);
         }
 
         private void ProgressLogging(ProgressMessage progressMessage)
@@ -112,7 +115,7 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
             {
                 TaskId = progressMessage.TaskId,
                 Status = progressMessage.Phase,
-                Message = progressMessage.Message
+                Message = progressMessage.ToString()
             };
 
             if(progressMessage is BlockUpscalling)
@@ -124,7 +127,8 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
                 mqProgressEvent.ProgressRatio = upscallingProgressMessage.Percent;
             }
 
-            mqBus.Send(MqUtils.UpscallingResultQueue, mqProgressEvent);
+            _mqBus.Send(MqUtils.UpscallingProgressQueue, mqProgressEvent);
+            Console.WriteLine(progressMessage);
         }
     }
 }

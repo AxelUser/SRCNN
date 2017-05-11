@@ -4,10 +4,8 @@ using System.Text;
 
 namespace ImageSuperResolution.Common.Messages.QueueCommands
 {
-    public class SendImage: ITaskMessage
+    public class SendImage: QueueMessageBase
     {
-        public Guid TaskId { get; set; }
-
         public byte[] Image { get; set; }
     }
 }
