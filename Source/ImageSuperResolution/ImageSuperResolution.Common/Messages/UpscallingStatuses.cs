@@ -5,18 +5,18 @@ namespace ImageSuperResolution.Common.Messages
     public enum UpscallingStatuses
     {
         [Description("Image received")]
-        Received,
+        Received = 0,
 
         [Description("Decomposing")]
-        Decompose,
+        Decompose = 1,
 
         [Description("Upscalling blocks")]
-        UpscallingBlock,
+        UpscallingBlock = 2,
 
         [Description("Composing")]
-        Compose,
+        Compose = 3,
 
         [Description("Upscaled image was sent")]
-        SentResult
+        SentResult = 4
     }
 }

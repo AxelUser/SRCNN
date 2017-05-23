@@ -25,7 +25,8 @@
                     isRunning: false,
                     isShownModified: false,
                     progressPooling: null,
-                    ticket: null
+                    ticket: null,
+                    totalBlocks: null
                 },
                 computed: {
                     cancelButtonText() {
@@ -69,6 +70,45 @@
                                 }
                                
                             }, response => console.log("Progress Fail"));
+                    },
+                    handleProgress(messages) {                        
+                        const status = {
+                            isReceived: false,
+                            isDecomposing: false,
+                            isUpscalling: false,
+                            isComposing: false,
+                            isReady: false
+                        }
+                        let totalBLocks = null;
+                        const blockProcessed = [];
+                        let upscaledImageUrl = null;
+
+                        messages.forEach(message => {
+                            switch (message.Status) {
+                                //Image received
+                                case 0:
+                                    status.isReceived = true;
+                                    break;
+                                //Decomposing
+                                case 1:
+                                    status.isDecomposing = true;
+                                    break;
+                                //Upscalling blocks
+                                case 2:
+                                    status.isUpscalling;
+                                    totalBLocks = message.TotalBlocks;
+                                    blockProcessed.push(message.BlockNumber);
+                                    break;
+                                //Composing
+                                case 3:
+                                    status.isUpscalling = true;
+                                    break;
+                                //Upscaled image was sent
+                                case 4:
+                                    status.isReady = true;
+                                    break;
+                            }
+                        });
                     },
                     getResult() {
                         this.$http.get("/api/Upscalling/GetResult", { params: { ticket: this.ticket } })
