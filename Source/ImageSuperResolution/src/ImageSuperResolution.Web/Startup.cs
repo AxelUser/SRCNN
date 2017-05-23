@@ -1,18 +1,17 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using ImageSuperResolution.Web.Servicies;
-using Microsoft.AspNetCore.Builder;
+﻿using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using ImageSuperResolution.Web.Servicies.Extentions;
 
 namespace ImageSuperResolution.Web
 {
     public class Startup
     {
+
+        private readonly bool _shallClearData;
+        
         public Startup(IHostingEnvironment env)
         {
             var builder = new ConfigurationBuilder()
@@ -21,6 +20,8 @@ namespace ImageSuperResolution.Web
                 .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true)
                 .AddEnvironmentVariables();
             Configuration = builder.Build();
+
+            _shallClearData = env.IsDevelopment();
         }
 
         public IConfigurationRoot Configuration { get; }
@@ -30,7 +31,7 @@ namespace ImageSuperResolution.Web
         {
             // Add framework services.
             services.AddMvc();
-            services.AddSingleton<IUpscallingService>(new UpscallingService());
+            services.AddUpscallingService(_shallClearData);
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
@@ -42,7 +43,7 @@ namespace ImageSuperResolution.Web
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
-                app.UseBrowserLink();
+                app.UseBrowserLink();                
             }
             else
             {

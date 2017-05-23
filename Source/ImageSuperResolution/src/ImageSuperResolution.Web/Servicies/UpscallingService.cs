@@ -24,9 +24,14 @@ namespace ImageSuperResolution.Web.Servicies
         private readonly LiteDatabase _db;
 
 
-        public UpscallingService()
+        public UpscallingService(bool shallClearData = false)
         {
             _mqBus = RabbitHutch.CreateBus("host=localhost");
+
+            if (shallClearData)
+            {
+                ClearData();
+            }
 
             Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), _dataFolder));
             _dbFilePath = Path.Combine(Directory.GetCurrentDirectory(), _dataFolder, _dbName);
@@ -126,7 +131,15 @@ namespace ImageSuperResolution.Web.Servicies
                 }
                 
             }
-            
+        }
+
+        public void ClearData()
+        {
+            var filePaths = Directory.GetFiles(_dataFolder);
+            foreach (var filePath in filePaths)
+            {
+                File.Delete(filePath);
+            }
         }
     }
 }
