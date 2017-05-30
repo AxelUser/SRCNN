@@ -28,14 +28,13 @@ namespace ImageSuperResolution.Web.Servicies
         {
             _mqBus = RabbitHutch.CreateBus("host=localhost");
 
+            Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), _dataFolder));
+            _dbFilePath = Path.Combine(Directory.GetCurrentDirectory(), _dataFolder, _dbName);
+
             if (shallClearData)
             {
                 ClearData();
             }
-
-            Directory.CreateDirectory(Path.Combine(Directory.GetCurrentDirectory(), _dataFolder));
-            _dbFilePath = Path.Combine(Directory.GetCurrentDirectory(), _dataFolder, _dbName);
-            
 
             _dbMapper = new BsonMapper();
             _dbMapper.Entity<TaskProgress>().Id(tp => tp.MessageId);

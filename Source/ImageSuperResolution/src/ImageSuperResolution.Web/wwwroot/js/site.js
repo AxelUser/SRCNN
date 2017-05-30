@@ -22,6 +22,7 @@
                     scale: 2,
                     progressRatio: 0,
                     progressMessage: null,
+                    upscalledImage: null,
                     isRunning: false,
                     isShownModified: false,
                     progressPooling: null,
@@ -67,11 +68,12 @@
                             .then(response => {
                                 if (response.body) {
                                     console.log(response.body);
-                                }
-                               
+                                    let statusObject = this.getTaskStatus(response.body);
+                                    this.handleProgress(statusObject);
+                                }                                
                             }, response => console.log("Progress Fail"));
                     },
-                    handleProgress(messages) {                        
+                    getTaskStatus(messages = []) {
                         const status = {
                             isReceived: false,
                             isDecomposing: false,
@@ -80,11 +82,11 @@
                             isReady: false
                         }
                         let totalBLocks = null;
-                        const blockProcessed = [];
+                        const blocksProcessed = [];
                         let upscaledImageUrl = null;
 
                         messages.forEach(message => {
-                            switch (message.Status) {
+                            switch (message.status) {
                                 //Image received
                                 case 0:
                                     status.isReceived = true;
@@ -95,13 +97,13 @@
                                     break;
                                 //Upscalling blocks
                                 case 2:
-                                    status.isUpscalling;
-                                    totalBLocks = message.TotalBlocks;
-                                    blockProcessed.push(message.BlockNumber);
+                                    status.isUpscalling = true;
+                                    totalBLocks = message.blocksCount;
+                                    blocksProcessed.push(message.blockNumber);
                                     break;
                                 //Composing
                                 case 3:
-                                    status.isUpscalling = true;
+                                    status.isComposing = true;
                                     break;
                                 //Upscaled image was sent
                                 case 4:
@@ -109,6 +111,33 @@
                                     break;
                             }
                         });
+                        return {
+                            status,
+                            totalBLocks,
+                            blocksProcessed,
+                            upscaledImageUrl
+                        }
+                    },
+                    handleProgress(taskStatusObject) {
+                        let text = "Waiting";
+                        let url = null;
+                        if (taskStatusObject.status.isReceived) {
+                            text = "Image was received";
+                            if (taskStatusObject.status.isDecomposing) {
+                                text = "Decomposing";
+                                if (taskStatusObject.status.isUpscalling) {
+                                    text = `Upscalling: ${taskStatusObject.blocksProcessed.length} of ${taskStatusObject.totalBLocks}`;
+                                    if (taskStatusObject.status.isComposing) {
+                                        text = "Composing";
+                                        if (taskStatusObject.status.isReady) {
+                                            text = "Ready";
+                                            this.upscalledImage = taskStatusObject.upscaledImageUrl;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        this.progressMessage = text;
                     },
                     getResult() {
                         this.$http.get("/api/Upscalling/GetResult", { params: { ticket: this.ticket } })

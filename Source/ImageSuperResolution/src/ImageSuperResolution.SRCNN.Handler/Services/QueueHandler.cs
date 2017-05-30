@@ -106,6 +106,7 @@ namespace ImageSuperResolution.SRCNN.Handler.Services
             };
 
             _mqBus.Send(MqUtils.UpscallingResultQueue, resultMqEvent);
+            ProgressLogging(new ProgressMessage(result.TaskId, UpscallingStatuses.SentResult));
             Console.WriteLine(result);
         }
 
