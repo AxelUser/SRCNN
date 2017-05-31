@@ -9,6 +9,7 @@ using LiteDB;
 using System.Collections.Generic;
 using System.Linq;
 using ImageSuperResolution.Common.Messages.ViewModels;
+using System.Drawing;
 
 namespace ImageSuperResolution.Web.Servicies
 {
@@ -43,29 +44,37 @@ namespace ImageSuperResolution.Web.Servicies
             progressReceiver = _mqBus.Receive<TaskProgress>(MqUtils.UpscallingProgressQueue, m => OnProgress(m));
             resultReceiver = _mqBus.Receive<TaskFinished>(MqUtils.UpscallingResultQueue, m => OnResult(m));
 
-            _db = new LiteDatabase(_dbFilePath, _dbMapper);
+            _db = new LiteDatabase(new MemoryStream(), _dbMapper);
         }
 
         private void OnProgress(TaskProgress progressMessage)
         {
-
-            var progressEvents = _db.GetCollection<TaskProgress>();
-            progressEvents.Insert(progressMessage);
+            Task.Run(() =>
+            {
+                lock (_db)
+                {
+                    var progressEvents = _db.GetCollection<TaskProgress>();
+                    progressEvents.Insert(progressMessage);
+                }
+            });
         }
 
         private void OnResult(TaskFinished resultMessage)
         {
-
-            var progressEvents = _db.GetCollection<TaskFinished>();
-            progressEvents.Insert(resultMessage);
-
-            using(var ms = new MemoryStream(resultMessage.Image))
+            Task.Run(() =>
             {
-                _db.FileStorage.Upload(resultMessage.TaskId.ToString(), $"{resultMessage.TaskId}.png", ms);
+                lock (_db)
+                {
+                    var progressEvents = _db.GetCollection<TaskFinished>();
+                    progressEvents.Insert(resultMessage);
 
-                var fileInfo = _db.FileStorage.FindById(resultMessage.TaskId.ToString());
-                fileInfo.SaveAs(Path.Combine(_dataFolder, $"{resultMessage.TaskId}.png"));
-            }
+                    using (var ms = new MemoryStream(resultMessage.Image))
+                    {
+                        var image = new Bitmap(ms);
+                        image.Save(Path.Combine(_dataFolder, $"{resultMessage.TaskId}.png"), System.Drawing.Imaging.ImageFormat.Png);
+                    }
+                }
+            });
         }
 
         public IEnumerable<TaskProgress> GetProgress(Guid ticket)
@@ -117,19 +126,15 @@ namespace ImageSuperResolution.Web.Servicies
 
         public bool ClearEvents(Guid ticket)
         {
-            using (var db = new LiteDatabase(_dbFilePath, _dbMapper))
+            try
             {
-                try
-                {
-                    db.GetCollection<TaskProgress>().Delete(tp => tp.TaskId == ticket);
-                    db.GetCollection<TaskFinished>().Delete(tf => tf.TaskId == ticket);
-                    return true;
-                }
-                catch
-                {
-                    return false;
-                }
-                
+                _db.GetCollection<TaskProgress>().Delete(tp => tp.TaskId == ticket);
+                _db.GetCollection<TaskFinished>().Delete(tf => tf.TaskId == ticket);
+                return true;
+            }
+            catch
+            {
+                return false;
             }
         }
 

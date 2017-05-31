@@ -61,7 +61,7 @@
                         this.$http.post("/api/Upscalling/Upload", this.uploadedFile)
                             .then(response => {  
                                 this.ticket = response.body;
-                            }, response => console.log("Upload Fail"));
+                            }, response => console.error("Upload Fail"));
                     },
                     getProgress() {
                         this.$http.get("/api/Upscalling/GetProgress", { params: { ticket: this.ticket } })
@@ -71,7 +71,18 @@
                                     let statusObject = this.getTaskStatus(response.body);
                                     this.handleProgress(statusObject);
                                 }                                
-                            }, response => console.log("Progress Fail"));
+                            }, response => console.error("Progress failed"));
+                    },
+                    clearEvents() {
+                        this.$http.post("/api/Upscalling/Clear", `=${this.ticket}`)
+                            .then(response => {
+                                if (response.body === true) {
+                                    console.log("Data was cleared")
+                                } else {
+                                    console.error("Data wasn't cleared")
+                                }
+                                
+                            }, response => console.error("Clearing failed"));
                     },
                     getTaskStatus(messages = []) {
                         const status = {
@@ -121,20 +132,20 @@
                         let url = null;
                         if (taskStatusObject.status.isReceived) {
                             text = "Image was received";
-                            if (taskStatusObject.status.isDecomposing) {
-                                text = "Decomposing";
-                                if (taskStatusObject.status.isUpscalling) {
-                                    text = `Upscalling: ${taskStatusObject.blocksProcessed.length} of ${taskStatusObject.totalBLocks}`;
-                                    if (taskStatusObject.status.isComposing) {
-                                        text = "Composing";
-                                        if (taskStatusObject.status.isReady) {
-                                            text = "Ready";                                            
-                                            this.stopPooling();
-                                            this.getResult();
-                                        }
-                                    }
-                                }
-                            }
+                        }
+                        if (taskStatusObject.status.isDecomposing) {
+                            text = "Decomposing";
+                        }
+                        if (taskStatusObject.status.isUpscalling) {
+                            text = `Upscalling: ${taskStatusObject.blocksProcessed.length} of ${taskStatusObject.totalBLocks}`;
+                        }
+                        if (taskStatusObject.status.isComposing) {
+                            text = "Composing";
+                        }
+                        if (taskStatusObject.status.isReady) {
+                            text = "Ready";                                            
+                            this.stopPooling();
+                            this.getResult();
                         }
                         this.progressMessage = text;
                     },
@@ -144,6 +155,7 @@
                                 if (response.body) {
                                     console.log(response.body);
                                     this.upscaledFileUrl = response.body.filePath;
+                                    this.clearEvents();
                                 }
                             }, response => console.log("Rusult Fail"));
                     },
@@ -155,6 +167,7 @@
                         this.isRunning = false;
                     },
                     startProcess() {
+                        this.progressMessage = null;
                         let canvas = document.createElement('canvas');
                         let context = canvas.getContext('2d');
                         canvas.width = this.imageWidth;

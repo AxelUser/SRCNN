@@ -31,6 +31,7 @@ namespace ImageSuperResolution.Web.Controllers.Api
         public ResultInfo GetResult(Guid ticket)
         {
             var resultInfo = _upscallingService.GetResultInfo(ticket);
+            _upscallingService.ClearEvents(ticket);
             return resultInfo;
         }
 
