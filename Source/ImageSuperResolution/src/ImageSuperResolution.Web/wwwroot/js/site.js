@@ -18,7 +18,7 @@
                     imageHeight: 0,
                     imageWidth: 0,
                     uploadedFile: null,
-                    upscaledFile: null,
+                    upscaledFileUrl: null,
                     scale: 2,
                     progressRatio: 0,
                     progressMessage: null,
@@ -37,11 +37,11 @@
                         return this.isShownModified ? "Show original" : "Show modified";
                     },
                     isReady() {
-                        return !this.isRunning && this.upscaledFile !== null;
+                        return !this.isRunning && this.upscaledFileUrl !== null;
                     },
                     getImagePreviewSource() {
                         if (this.image !== null) {
-                            return this.isShownModified ? this.upscaledFile : this.image.src;
+                            return this.isShownModified ? this.upscaledFileUrl : this.image.src;
                         } else {
                             return null;
                         }
@@ -83,7 +83,6 @@
                         }
                         let totalBLocks = null;
                         const blocksProcessed = [];
-                        let upscaledImageUrl = null;
 
                         messages.forEach(message => {
                             switch (message.status) {
@@ -114,8 +113,7 @@
                         return {
                             status,
                             totalBLocks,
-                            blocksProcessed,
-                            upscaledImageUrl
+                            blocksProcessed
                         }
                     },
                     handleProgress(taskStatusObject) {
@@ -130,8 +128,9 @@
                                     if (taskStatusObject.status.isComposing) {
                                         text = "Composing";
                                         if (taskStatusObject.status.isReady) {
-                                            text = "Ready";
-                                            this.upscalledImage = taskStatusObject.upscaledImageUrl;
+                                            text = "Ready";                                            
+                                            this.stopPooling();
+                                            this.getResult();
                                         }
                                     }
                                 }
@@ -144,14 +143,16 @@
                             .then(response => {
                                 if (response.body) {
                                     console.log(response.body);
+                                    this.upscaledFileUrl = response.body.filePath;
                                 }
                             }, response => console.log("Rusult Fail"));
                     },
                     initPooling() {
-                        this.progressPooling = setInterval(() => this.getProgress(), 5000);
+                        this.progressPooling = setInterval(() => this.getProgress(), 2500);
                     },
                     stopPooling() {
-                        clearInterval(this.progressPooling());
+                        clearInterval(this.progressPooling);
+                        this.isRunning = false;
                     },
                     startProcess() {
                         let canvas = document.createElement('canvas');
@@ -187,13 +188,10 @@
                         reader.readAsDataURL(file);
                     },
                     cancel() {
-                        if (this.isRunning) {
-                            this.stopWorker();
-                        } else {
-                            this.image = null;
-                            this.upscaledFile = null;
-                            this.progressMessage = null;
-                        }
+                        this.stopPooling();
+                        this.image = null;
+                        this.upscaledFileUrl = null;
+                        this.progressMessage = null;
                         this.isShownModified = false;
                     }
                 },

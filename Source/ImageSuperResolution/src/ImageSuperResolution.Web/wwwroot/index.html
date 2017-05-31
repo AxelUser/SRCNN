@@ -23,10 +23,10 @@
             <div class="message">{{progressMessage}}</div>
             <div class="controls">
                 <button class="controls__button controls__button_cancel" @click="cancel">{{cancelButtonText}}</button>
-                <button class="controls__button" @click="startProcess">Upscale</button>
+                <button class="controls__button" v-bind:class="{ controls__button_disabled: isRunning }" v-bind:disabled="isRunning" @click="startProcess">Upscale</button>
             </div>
             <div v-if="isReady" class="link">
-                <a :href="upscaledFile" download="srcnn.png" target="_blank">Download</a>
+                <a :href="upscaledFileUrl" download="srcnn.png" target="_blank">Download</a>
             </div>
         </template>
     </div>

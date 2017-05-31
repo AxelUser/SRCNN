@@ -4,6 +4,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using ImageSuperResolution.Web.Servicies.Extentions;
+using Microsoft.Extensions.FileProviders;
+using System.IO;
+using Microsoft.AspNetCore.Http;
 
 namespace ImageSuperResolution.Web
 {
@@ -55,6 +58,13 @@ namespace ImageSuperResolution.Web
 
             app.UseDefaultFiles();
             app.UseStaticFiles();
+
+            app.UseStaticFiles(new StaticFileOptions()
+            {
+                FileProvider = new PhysicalFileProvider(
+                Path.Combine(Directory.GetCurrentDirectory(), @"DataStorage")),
+                RequestPath = new PathString("/image")
+            });
 
             app.UseMvc(routes =>
             {

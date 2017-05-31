@@ -81,15 +81,16 @@ namespace ImageSuperResolution.Web.Servicies
             var resultEvent = _db.GetCollection<TaskFinished>().FindById(ticket);
             if (resultEvent != null)
             {
-                var path = Path.Combine(_dataFolder, $"{ticket}.png");
-                if (File.Exists(path))
+                var pathToFile = Path.Combine(_dataFolder, $"{ticket}.png");
+                if (File.Exists(pathToFile))
                 {
+                    string fileUrl = $"/image/{ticket}.png";
                     return new ResultInfo()
                     {
                         Height = resultEvent.Height,
                         Width = resultEvent.Width,
                         ElapsedTime = resultEvent.ElapsedTime,
-                        FilePath = path
+                        FilePath = fileUrl
                     };
                 }
             }

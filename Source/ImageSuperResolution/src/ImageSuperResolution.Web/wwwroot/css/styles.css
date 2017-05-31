@@ -56,6 +56,10 @@ body {
 .controls__button_cancel {
   background-color: rgba(255, 0, 0, 0.76);
 }
+.controls__button_disabled {
+  color: rgba(219, 219, 219, 0.4);
+  background-color: rgba(128, 128, 128, 0.62);
+}
 .link {
   font-size: 1.5em;
   background-color: rgba(111, 64, 255, 0.62);
